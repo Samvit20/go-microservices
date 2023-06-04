@@ -1,25 +1,57 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	details "github.com/Samvit20/go-microservices/details"
 
 	"github.com/gorilla/mux"
 )
 
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Checking application health")
+	response := map[string]string{
+		"status": "UP",
+		"time":   time.Now().String(),
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Serving the homepage")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Application is up and running!")
+}
+
+func detailsHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Fetching the details")
+	hostname, err := details.GetHostname()
+	if err != nil {
+		panic(err)
+	}
+	IP, _ := details.GetIP()
+
+	response := map[string]string{
+		"hostname": hostname,
+		"IP":   IP.String(),
+	}
+	json.NewEncoder(w).Encode(response)
+
+}
+
 func main() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/book/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
-		vars := mux.Vars(r)
-		title := vars["title"]
-		page := vars["page"]
+	r.HandleFunc("/", rootHandler)
+	r.HandleFunc("/health", healthHandler)
+	r.HandleFunc("/details", detailsHandler)
 
-		fmt.Fprintf(w, "You've requested the book:%s on page:%s\n", title, page)
-	})
 	log.Println("Webserver started on 8080!")
-	http.ListenAndServe(":8080", r)
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 // package main
