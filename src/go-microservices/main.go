@@ -6,10 +6,16 @@ import (
 	"net/http"
 )
 
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello you have requested: %s with token: %s\n", r.URL.Path, r.URL.Query().Get("token"))
+}
+
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello you have requested: %s with token: %s\n", r.URL.Path, r.URL.Query().Get("token"))
-	})
+	http.HandleFunc("/", rootHandler)
+
+	fs := http.FileServer(http.Dir("static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	log.Println("The web server has started")
 	http.ListenAndServe(":8080", nil)
 }
