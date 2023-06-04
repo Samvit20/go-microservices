@@ -4,21 +4,45 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello you have requested: %s with token: %s\n", r.URL.Path, r.URL.Query().Get("token"))
-}
-
 func main() {
-	http.HandleFunc("/", rootHandler)
+	r := mux.NewRouter()
 
-	fs := http.FileServer(http.Dir("static/"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	r.HandleFunc("/book/{title}/page/{page}", func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		title := vars["title"]
+		page := vars["page"]
 
-	log.Println("The web server has started")
-	http.ListenAndServe(":8080", nil)
+		fmt.Fprintf(w, "You've requested the book:%s on page:%s\n", title, page)
+	})
+	log.Println("Webserver started on 8080!")
+	http.ListenAndServe(":8080", r)
 }
+
+// package main
+
+// import (
+// 	"fmt"
+// 	"log"
+// 	"net/http"
+// )
+
+// func rootHandler(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Fprintf(w, "Hello you have requested: %s with token: %s\n", r.URL.Path, r.URL.Query().Get("token"))
+// }
+
+// func main() {
+// 	http.HandleFunc("/", rootHandler)
+
+// 	fs := http.FileServer(http.Dir("static/"))
+// 	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+// 	log.Println("The web server has started")
+// 	http.ListenAndServe(":8080", nil)
+// }
 
 // package main
 
